@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/go-ble/ble"
@@ -33,6 +34,7 @@ type Device struct {
 }
 
 var statusStore = map[string]*Device{}
+var mapLock = sync.RWMutex{}
 
 func main() {
 
@@ -65,6 +67,7 @@ func main() {
 			return
 		}
 
+		mapLock.RLock()
 		var tagerDevice *Device = nil
 		for _, d := range statusStore {
 			if d.Device.Mac == r.Form["mac_address"][0] {
@@ -73,6 +76,7 @@ func main() {
 				break
 			}
 		}
+		mapLock.RUnlock()
 		if tagerDevice == nil {
 			// not found
 			fmt.Printf("not found")
@@ -126,11 +130,12 @@ func greenBankHandler(a ble.Advertisement) {
 		return
 	}
 	fmt.Printf("mac: %X, light2: %d\n", d.Mac, d.Light2)
-
+	mapLock.Lock()
 	statusStore[a.Addr().String()] = &Device{
 		Device:      d,
 		DialAddress: a.Addr().String(),
 	}
+	mapLock.Unlock()
 }
 
 func setLight2(address string, status bool) {
