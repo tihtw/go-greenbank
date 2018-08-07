@@ -98,11 +98,11 @@ func (d *Device) SetLight(dialAddress string, lightNumber int, status bool) erro
 	} else if lightNumber == Light1 && status == false {
 		doWrite(cln, WriteValueLight1OFF)
 	} else if lightNumber == Light2 && status == true {
-		doWrite(cln, WriteValueLight2OFF)
+		doWrite(cln, WriteValueLight2ON)
 	} else if lightNumber == Light2 && status == false {
 		doWrite(cln, WriteValueLight2OFF)
 	} else if lightNumber == Light3 && status == true {
-		doWrite(cln, WriteValueLight3OFF)
+		doWrite(cln, WriteValueLight3ON)
 	} else if lightNumber == Light3 && status == false {
 		doWrite(cln, WriteValueLight3OFF)
 	} else {
