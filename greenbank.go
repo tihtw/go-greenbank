@@ -76,7 +76,7 @@ func NewDeviceByAdvertisementData(data []byte) (*Device, error) {
 }
 
 func (d *Device) SetLight(dialAddress string, lightNumber int, status bool) error {
-
+	fmt.Printf("set light: %s, %q %q\n", dialAddress, lightNumber, status)
 	cln, err := ble.Dial(context.Background(), ble.NewAddr(dialAddress))
 	if err != nil {
 		log.Fatalf("can't connect : %s", err)
