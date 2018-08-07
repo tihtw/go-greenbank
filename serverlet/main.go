@@ -50,6 +50,7 @@ func main() {
 	fmt.Printf("Scanning for %s...\n", *du)
 	// ctx := ble.WithSigHandler(context.WithTimeout(context.Background(), *du))
 	// ctx := ble.WithSigHandler(context.WithCancel(context.Background()))
+
 	go func() {
 		chkErr(ble.Scan(context.Background(), *dup, advHandler, nil))
 	}()
@@ -66,25 +67,10 @@ func main() {
 			fmt.Printf("no macaddress")
 			return
 		}
-
-		mapLock.RLock()
-		var tagerDevice *Device = nil
-		for _, d := range statusStore {
-			if d.Device.Mac == r.Form["mac_address"][0] {
-				xd := d
-				tagerDevice = xd
-				break
+		for _, key := range []string{"light1", "light2", "light3"} {
+			if len(r.Form[key]) != 0 {
+				setLight(r.Form["mac_address"][0], key, r.Form[key][0] == "1")
 			}
-		}
-		mapLock.RUnlock()
-		if tagerDevice == nil {
-			// not found
-			fmt.Printf("not found")
-			return
-		}
-
-		if len(r.Form["light2"]) != 0 {
-			setLight2(tagerDevice.DialAddress, r.Form["light2"][0] == "1")
 		}
 
 		payload, _ := json.Marshal(r.Form)
@@ -95,31 +81,50 @@ func main() {
 	fmt.Println("out")
 }
 
+func setLight(macAddress string, lightNumber string, value bool) {
+	fmt.Printf("set light: %s, %s, %d", macAddress, lightNumber, value)
+	mapLock.RLock()
+	var tagerDevice *Device = nil
+	for _, d := range statusStore {
+		if d.Device.Mac == macAddress {
+			xd := d
+			tagerDevice = xd
+			break
+		}
+	}
+	mapLock.RUnlock()
+	fmt.Printf("got light")
+	if tagerDevice == nil {
+		// not found
+		fmt.Printf("not found")
+		return
+	}
+
+	if lightNumber == "light1" {
+		tagerDevice.Device.SetLight(tagerDevice.DialAddress, greenbank.Light1, value)
+	}
+	if lightNumber == "light2" {
+		tagerDevice.Device.SetLight(tagerDevice.DialAddress, greenbank.Light2, value)
+	}
+	if lightNumber == "light3" {
+		tagerDevice.Device.SetLight(tagerDevice.DialAddress, greenbank.Light3, value)
+	}
+
+	fmt.Printf("set light fin")
+}
+
 func advHandler(a ble.Advertisement) {
 	for _, s := range a.Services() {
 		if s.String() == GreenBankUUID {
 			greenBankHandler(a)
 		}
 	}
+}
 
-	// if a.Connectable() {
-	// 	fmt.Printf("[%s] C %3d:", a.Addr(), a.RSSI())
-	// } else {
-	// 	fmt.Printf("[%s] N %3d:", a.Addr(), a.RSSI())
-	// }
-	// comma := ""
-	// if len(a.LocalName()) > 0 {
-	// 	fmt.Printf(" Name: %s", a.LocalName())
-	// 	comma = ","
-	// }
-	// if len(a.Services()) > 0 {
-	// 	fmt.Printf("%s Svcs: %v", comma, a.Services())
-	// 	comma = ","
-	// }
-	// if len(a.ManufacturerData()) > 0 {
-	// 	fmt.Printf("%s MD: %X", comma, a.ManufacturerData())
-	// }
-	// fmt.Printf("\n")
+func ryokuHandler(macAddress string, lightNumber string, value bool) {
+
+	setLight(macAddress, lightNumber, value)
+
 }
 
 func greenBankHandler(a ble.Advertisement) {
@@ -131,10 +136,14 @@ func greenBankHandler(a ble.Advertisement) {
 	}
 	fmt.Printf("mac: %X, light2: %d\n", d.Mac, d.Light2)
 	mapLock.Lock()
+	if _, ok := statusStore[a.Addr().String()]; !ok {
+		go connectRyoku(d.Mac, ryokuHandler)
+	}
 	statusStore[a.Addr().String()] = &Device{
 		Device:      d,
 		DialAddress: a.Addr().String(),
 	}
+
 	mapLock.Unlock()
 }
 
@@ -157,7 +166,6 @@ func setLight2(address string, status bool) {
 		close(done)
 	}()
 	if status {
-
 		test(cln, 0x13)
 	} else {
 		fmt.Printf("send off\n")
