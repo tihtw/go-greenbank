@@ -139,6 +139,7 @@ func greenBankHandler(a ble.Advertisement) {
 	if _, ok := statusStore[a.Addr().String()]; !ok {
 		go connectRyoku(d.Mac, ryokuHandler)
 	}
+	// go postRyoku()
 	statusStore[a.Addr().String()] = &Device{
 		Device:      d,
 		DialAddress: a.Addr().String(),

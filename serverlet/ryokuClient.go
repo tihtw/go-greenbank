@@ -4,11 +4,19 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
+	"net/url"
 	"strings"
 )
 
 var RyokuAddress = "https://www.tih.tw:8081"
+
+func postRyoku(deviceMacAddress string, lightNumber string, value bool) {
+	resp, _ := http.PostForm(RyokuAddress+"/2/devices/"+deviceMacAddress+"peripherals/"+lightNumber, url.Values{lightNumber: {fmt.Sprintf("%q", value)}})
+	ioutil.ReadAll(resp.Body)
+	// resp.Close()
+}
 
 func connectRyoku(deviceMacAddress string, callback func(macAddress string, lightNumber string, value bool)) {
 	resp, _ := http.Get(RyokuAddress + "/2/devices/" + deviceMacAddress + "?event-stream")

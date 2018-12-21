@@ -33,7 +33,7 @@ const (
 
 	Light1 = 0
 	Light2 = 1
-	Light3 = 3
+	Light3 = 2
 
 	WriteValueLight1ON  = 0x51
 	WriteValueLight1OFF = 0x90
