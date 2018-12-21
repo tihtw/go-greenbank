@@ -115,7 +115,7 @@ func setLight(macAddress string, lightNumber string, value bool) {
 }
 
 func advHandler(a ble.Advertisement) {
-	fmt.Println("xx", a)
+	// fmt.Println("xx", a)
 	for _, s := range a.Services() {
 		if s.String() == GreenBankUUID {
 			greenBankHandler(a)
