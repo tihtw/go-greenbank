@@ -145,6 +145,10 @@ func postRyokuLight(bluetoothMacAddress string, lightName string, value bool) {
 	postRyoku(mainMacaddress, bluetoothMacAddress, &url.Values{lightName + "_status": {fmt.Sprintf("%q", value)}})
 }
 
+func postRyokuProductType(bluetoothMacAddress string, productType bool) {
+	postRyoku(mainMacaddress, bluetoothMacAddress, &url.Values{"product_type": {fmt.Sprintf("%q", productType)}})
+}
+
 func connectRyokuLight(deviceMacAddress string, callback func(macAddress string, lightNumber string, value bool)) {
 	listenedBluetoothAddress[deviceMacAddress] = callback
 }

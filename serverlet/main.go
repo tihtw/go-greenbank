@@ -136,11 +136,16 @@ func greenBankHandler(a ble.Advertisement) {
 		fmt.Println("error:", err)
 		return
 	}
-	fmt.Printf("mac: %s, light2: %b\n", d.Mac, d.Light2)
+	fmt.Printf("mac: %s, light2: %q\n", d.Mac, d.Light2)
 	mapLock.Lock()
 	if _, ok := statusStore[a.Addr().String()]; !ok {
 		go connectRyokuLight(d.Mac, ryokuHandler)
 	}
+	go postRyokuLight(d.Mac, "light1", d.Light1)
+	go postRyokuLight(d.Mac, "light2", d.Light2)
+	go postRyokuLight(d.Mac, "light3", d.Light3)
+	go postRyokuProductType(d.Mac, d.ProductType)
+
 	// go postRyoku()
 	statusStore[a.Addr().String()] = &Device{
 		Device:      d,
