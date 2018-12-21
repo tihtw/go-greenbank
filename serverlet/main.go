@@ -144,7 +144,7 @@ func greenBankHandler(a ble.Advertisement) {
 	go postRyokuLight(d.Mac, "light1", d.Light1)
 	go postRyokuLight(d.Mac, "light2", d.Light2)
 	go postRyokuLight(d.Mac, "light3", d.Light3)
-	go postRyokuProductType(d.Mac, d.ProductType)
+	go postRyokuProductType(d.Mac, int(d.ProductType))
 
 	// go postRyoku()
 	statusStore[a.Addr().String()] = &Device{
