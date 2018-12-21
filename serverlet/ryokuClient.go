@@ -125,7 +125,7 @@ func connectRyoku() {
 		if ok {
 			go callback(targetMac, "light2", setPowerStatus == "true")
 		}
-		setPowerStatus, ok = data["set_light1_status"].(string)
+		setPowerStatus, ok = data["set_light3_status"].(string)
 		if ok {
 			go callback(targetMac, "light3", setPowerStatus == "true")
 		}
@@ -142,11 +142,11 @@ func postRyoku(macAddress string, peripheralName string, body *url.Values) {
 }
 
 func postRyokuLight(bluetoothMacAddress string, lightName string, value bool) {
-	postRyoku(mainMacaddress, bluetoothMacAddress, &url.Values{lightName + "_status": {fmt.Sprintf("%q", value)}})
+	postRyoku(mainMacaddress, bluetoothMacAddress, &url.Values{lightName + "_status": {fmt.Sprintf("%t", value)}})
 }
 
 func postRyokuProductType(bluetoothMacAddress string, productType int) {
-	postRyoku(mainMacaddress, bluetoothMacAddress, &url.Values{"product_type": {fmt.Sprintf("%q", productType)}})
+	postRyoku(mainMacaddress, bluetoothMacAddress, &url.Values{"product_type": {fmt.Sprintf("%d", productType)}})
 }
 
 func connectRyokuLight(deviceMacAddress string, callback func(macAddress string, lightNumber string, value bool)) {
