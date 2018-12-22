@@ -1,0 +1,29 @@
+# Install:
+#    sudo ln -s `pwd`/maidwhitebridge.service /lib/systemd/system
+#    sudo systemctl daemon-reload
+#
+# Start on each boot:
+#    sudo systemctl enable maidwhitebridge.service
+#
+# Start right now:
+#    sudo systemctl start maidwhitebridge.service
+# For Voice Kit
+
+[Unit]
+Description=Maid White Bridge
+Wants=network-online.target
+After=network-online.target
+Wants=systemd-timesyncd.service
+After=systemd-timesyncd.service
+
+[Service]
+#Environment=DISPLAY=:0
+Environment=XDG_RUNTIME_DIR=/run/user/1000
+Type=simple
+Restart=always
+User=pi
+WorkingDirectory=/home/pi/
+ExecStart=/home/pi/go-greenbank/src/github.com/tihtw/go-greenbank/serverlet/serverlet
+
+[Install]
+WantedBy=multi-user.target
