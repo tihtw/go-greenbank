@@ -136,15 +136,38 @@ func greenBankHandler(a ble.Advertisement) {
 		fmt.Println("error:", err)
 		return
 	}
-	fmt.Printf("mac: %s, light2: %q\n", d.Mac, d.Light2)
+	fmt.Printf("mac: %s, light2: %t\n", d.Mac, d.Light2)
 	mapLock.Lock()
-	if _, ok := statusStore[a.Addr().String()]; !ok {
+	if oldDevice, ok := statusStore[a.Addr().String()]; !ok {
+		// First time
 		go connectRyokuLight(d.Mac, ryokuHandler)
+		go postRyokuLight(d.Mac, "light1", d.Light1)
+		go postRyokuLight(d.Mac, "light2", d.Light2)
+		go postRyokuLight(d.Mac, "light3", d.Light3)
+		go postRyokuProductType(d.Mac, int(d.ProductType))
+		go func() {
+			for {
+				nowStatus, _ := statusStore[a.Addr().String()]
+				go postRyokuLight(nowStatus.Mac, "light1", nowStatus.Light1)
+				go postRyokuLight(nowStatus.Mac, "light2", nowStatus.Light2)
+				go postRyokuLight(nowStatus.Mac, "light3", nowStatus.Light3)
+				time.Sleep(5 * time.Minute)
+			}
+
+		}()
+
+	} else {
+		// check dirty
+		if oldDevice.Device.Light1 != d.Light1 {
+			go postRyokuLight(d.Mac, "light1", d.Light1)
+		}
+		if oldDevice.Device.Light2 != d.Light2 {
+			go postRyokuLight(d.Mac, "light2", d.Light2)
+		}
+		if oldDevice.Device.Light3 != d.Light3 {
+			go postRyokuLight(d.Mac, "light3", d.Light3)
+		}
 	}
-	go postRyokuLight(d.Mac, "light1", d.Light1)
-	go postRyokuLight(d.Mac, "light2", d.Light2)
-	go postRyokuLight(d.Mac, "light3", d.Light3)
-	go postRyokuProductType(d.Mac, int(d.ProductType))
 
 	// go postRyoku()
 	statusStore[a.Addr().String()] = &Device{

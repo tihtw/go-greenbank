@@ -119,18 +119,18 @@ func connectRyoku() {
 		data, _ := payload["data"].(map[string]interface{})
 		setPowerStatus, ok := data["set_light1_status"].(string)
 		if ok {
-			go callback(targetMac, "light1", setPowerStatus == "true")
+
+			go callback(bluetoothAddress, "light1", setPowerStatus == "true")
 		}
 		setPowerStatus, ok = data["set_light2_status"].(string)
 		if ok {
-			go callback(targetMac, "light2", setPowerStatus == "true")
+
+			go callback(bluetoothAddress, "light2", setPowerStatus == "true")
 		}
 		setPowerStatus, ok = data["set_light3_status"].(string)
 		if ok {
-			go callback(targetMac, "light3", setPowerStatus == "true")
+			go callback(bluetoothAddress, "light3", setPowerStatus == "true")
 		}
-
-		fmt.Printf("no set power status or set power status not bool string")
 
 	}
 
