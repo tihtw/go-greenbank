@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"time"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -72,6 +73,18 @@ var mainMacaddress = ""
 
 var listenedBluetoothAddress map[string]func(macAddress string, lightNumber string, value bool) = map[string]func(macAddress string, lightNumber string, value bool){}
 
+func heartBeat(){
+	for {
+	postRyoku(mainMacaddress, "_", &url.Values{
+		"ipv4": getIPv4Address(),
+		"ipv6": {strings.Join(getIPv6Address(), ",")},
+		"device_timestamp": {time.Now().Format(time.RFC3339)},
+	})
+	
+		time.Sleep(10 * time.Second)
+	}
+}
+
 func connectRyoku() {
 	fmt.Println("mac address", getMacAddrs())
 	fmt.Println("ipv4 address", getIPv4Address())
@@ -79,9 +92,14 @@ func connectRyoku() {
 	mainMacaddress = strings.Replace(getMacAddrs()[0], ":", "", -1)
 	fmt.Println("main mac address:", mainMacaddress)
 	postRyoku(mainMacaddress, "_", &url.Values{
+		"driver_name": {"tw.tih.bridge.maidwhitebridge.v1"},
 		"ipv4": getIPv4Address(),
 		"ipv6": {strings.Join(getIPv6Address(), ",")},
+		"mac_address": {mainMacaddress},
 	})
+	go heartBeat()
+
+	
 
 	resp, _ := http.Get(RyokuAddress + "/2/devices/" + mainMacaddress + "?event-stream")
 	reader := bufio.NewReader(resp.Body)
@@ -112,6 +130,7 @@ func connectRyoku() {
 
 		callback, ok := listenedBluetoothAddress[bluetoothAddress]
 		if !ok {
+			fmt.Println("address not match")
 			// we are not interesting in this ble device now
 			continue
 		}
@@ -124,7 +143,7 @@ func connectRyoku() {
 		}
 		setPowerStatus, ok = data["set_light2_status"].(string)
 		if ok {
-
+			fmt.Printf("set 2 light")
 			go callback(bluetoothAddress, "light2", setPowerStatus == "true")
 		}
 		setPowerStatus, ok = data["set_light3_status"].(string)

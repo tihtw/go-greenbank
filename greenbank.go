@@ -79,7 +79,8 @@ func (d *Device) SetLight(dialAddress string, lightNumber int, status bool) erro
 	fmt.Printf("set light: %s, %q %q\n", dialAddress, lightNumber, status)
 	cln, err := ble.Dial(context.Background(), ble.NewAddr(dialAddress))
 	if err != nil {
-		log.Fatalf("can't connect : %s", err)
+		log.Println("can't connect:", err)
+		return err
 	}
 
 	fmt.Println("connected")
@@ -115,7 +116,7 @@ func (d *Device) SetLight(dialAddress string, lightNumber int, status bool) erro
 func doWrite(cln ble.Client, data byte) error {
 	ss, err := cln.DiscoverServices([]ble.UUID{ble.MustParse(ServiceUUID)})
 	if err != nil {
-		fmt.Println("err:", err)
+		fmt.Println("discovery service err:", err)
 		return err
 	}
 	s := ss[0]
@@ -123,7 +124,7 @@ func doWrite(cln ble.Client, data byte) error {
 	p := cln.Profile()
 	c := p.FindCharacteristic(ble.NewCharacteristic(ble.MustParse(CharacteristicUUID)))
 	err = cln.WriteCharacteristic(c, []byte{data}, false)
-	fmt.Println("err:", err)
+	fmt.Println("write charactererr:", err)
 	cln.CancelConnection()
 	return nil
 }

@@ -18,10 +18,9 @@ After=systemd-timesyncd.service
 
 [Service]
 #Environment=DISPLAY=:0
-Environment=XDG_RUNTIME_DIR=/run/user/1000
 Type=simple
 Restart=always
-User=pi
+User=root
 WorkingDirectory=/home/pi/
 ExecStart=/home/pi/go-greenbank/src/github.com/tihtw/go-greenbank/serverlet/serverlet
 

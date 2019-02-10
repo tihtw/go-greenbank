@@ -103,9 +103,13 @@ func setLight(macAddress string, lightNumber string, value bool) {
 
 	if lightNumber == "light1" {
 		tagerDevice.Device.SetLight(tagerDevice.DialAddress, greenbank.Light1, value)
+		// check if success after few second
 	}
 	if lightNumber == "light2" {
+		for i := 0; i < 10; i ++ {
 		tagerDevice.Device.SetLight(tagerDevice.DialAddress, greenbank.Light2, value)
+		time.Sleep(2 * time.Millisecond)
+		}
 	}
 	if lightNumber == "light3" {
 		tagerDevice.Device.SetLight(tagerDevice.DialAddress, greenbank.Light3, value)
@@ -148,13 +152,17 @@ func greenBankHandler(a ble.Advertisement) {
 		go func() {
 			for {
 				nowStatus, _ := statusStore[a.Addr().String()]
+				if(nowStatus == nil){
+					fmt.Println("warn: now status is null")
+					continue
+				}
 				go postRyokuLight(nowStatus.Mac, "light1", nowStatus.Light1)
 				go postRyokuLight(nowStatus.Mac, "light2", nowStatus.Light2)
 				go postRyokuLight(nowStatus.Mac, "light3", nowStatus.Light3)
 				time.Sleep(5 * time.Minute)
 			}
 
-		}()
+			}()
 
 	} else {
 		// check dirty
@@ -182,7 +190,8 @@ func setLight2(address string, status bool) {
 
 	cln, err := ble.Dial(context.Background(), ble.NewAddr(address))
 	if err != nil {
-		log.Fatalf("can't connect : %s", err)
+		log.Printf("can't connect : %s", err)
+		return
 	}
 
 	fmt.Println("connected")
