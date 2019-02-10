@@ -161,7 +161,10 @@ func postRyoku(macAddress string, peripheralName string, body *url.Values) {
 }
 
 func postRyokuLight(bluetoothMacAddress string, lightName string, value bool) {
-	postRyoku(mainMacaddress, bluetoothMacAddress, &url.Values{lightName + "_status": {fmt.Sprintf("%t", value)}})
+	postRyoku(mainMacaddress, bluetoothMacAddress, &url.Values{
+		lightName + "_status": {fmt.Sprintf("%t", value)},
+		"device_timestamp": {time.Now().Format(time.RFC3339)},
+	})
 }
 
 func postRyokuProductType(bluetoothMacAddress string, productType int) {

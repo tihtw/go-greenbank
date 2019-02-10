@@ -106,9 +106,18 @@ func setLight(macAddress string, lightNumber string, value bool) {
 		// check if success after few second
 	}
 	if lightNumber == "light2" {
-		for i := 0; i < 10; i ++ {
-		tagerDevice.Device.SetLight(tagerDevice.DialAddress, greenbank.Light2, value)
-		time.Sleep(2 * time.Millisecond)
+		for i := 0; i < 30; i ++ {
+			tagerDevice.Device.SetLight(tagerDevice.DialAddress, greenbank.Light2, value)
+			time.Sleep(500 * time.Millisecond)
+			mapLock.Lock()
+			if device, ok := statusStore[tagerDevice.DialAddress]; ok {
+				if device.Light2 == value {
+					mapLock.Unlock()
+					break
+				}
+			}
+
+			mapLock.Unlock()
 		}
 	}
 	if lightNumber == "light3" {
@@ -140,7 +149,7 @@ func greenBankHandler(a ble.Advertisement) {
 		fmt.Println("error:", err)
 		return
 	}
-	fmt.Printf("mac: %s, light2: %t\n", d.Mac, d.Light2)
+	fmt.Printf("[%s] mac: %s, light2: %t\n", time.Now().Format(time.RFC3339), d.Mac, d.Light2)
 	mapLock.Lock()
 	if oldDevice, ok := statusStore[a.Addr().String()]; !ok {
 		// First time
@@ -185,7 +194,7 @@ func greenBankHandler(a ble.Advertisement) {
 
 	mapLock.Unlock()
 }
-
+/*
 func setLight2(address string, status bool) {
 
 	cln, err := ble.Dial(context.Background(), ble.NewAddr(address))
@@ -254,6 +263,8 @@ func test(cln ble.Client, data byte) error {
 	// }
 	return nil
 }
+*/
+
 
 func chkErr(err error) {
 	switch errors.Cause(err) {
