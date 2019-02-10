@@ -165,7 +165,10 @@ func postRyokuLight(bluetoothMacAddress string, lightName string, value bool) {
 }
 
 func postRyokuProductType(bluetoothMacAddress string, productType int) {
-	postRyoku(mainMacaddress, bluetoothMacAddress, &url.Values{"product_type": {fmt.Sprintf("%d", productType)}})
+	postRyoku(mainMacaddress, bluetoothMacAddress, &url.Values{
+		"product_type": {fmt.Sprintf("%d", productType)},
+		"driver_name": {"tw.tih.x.com.gbank365.gswitch"},
+	})
 }
 
 func connectRyokuLight(deviceMacAddress string, callback func(macAddress string, lightNumber string, value bool)) {
