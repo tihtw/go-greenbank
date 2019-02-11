@@ -99,8 +99,23 @@ func connectRyoku() {
 	})
 	go heartBeat()
 
-	resp, _ := http.Get(RyokuAddress + "/2/devices/" + mainMacaddress + "?event-stream")
-	reader := bufio.NewReader(resp.Body)
+	resp, err := http.Get(RyokuAddress + "/2/devices/" + mainMacaddress + "?event-stream")
+	if err != nil {
+		// Connection problem, reconnect
+		for {
+			fmt.Println("first connection problem:", err)
+			time.Sleep(10 * time.Second)
+			resp, err = http.Get(RyokuAddress + "/2/devices/" + mainMacaddress + "?event-stream")
+			if err != nil {
+				fmt.Println("connection retry problem:", err)
+				continue
+			}
+			reader = bufio.NewReader(resp.Body)
+			break
+		}
+	} else {
+		reader := bufio.NewReader(resp.Body)
+	}
 	for {
 		line, err := reader.ReadBytes('\n')
 		if err != nil {
