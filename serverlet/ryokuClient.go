@@ -110,12 +110,10 @@ func connectRyoku() {
 				fmt.Println("connection retry problem:", err)
 				continue
 			}
-			reader = bufio.NewReader(resp.Body)
 			break
 		}
-	} else {
-		reader := bufio.NewReader(resp.Body)
 	}
+	reader := bufio.NewReader(resp.Body)
 	for {
 		line, err := reader.ReadBytes('\n')
 		if err != nil {
