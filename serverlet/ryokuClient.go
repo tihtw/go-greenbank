@@ -162,7 +162,12 @@ func connectRyoku() {
 }
 
 func postRyoku(macAddress string, peripheralName string, body *url.Values) {
-	resp, _ := http.PostForm(RyokuAddress+"/2/devices/"+macAddress+"/peripherals/"+peripheralName, *body)
+	resp, err := http.PostForm(RyokuAddress+"/2/devices/"+macAddress+"/peripherals/"+peripheralName, *body)
+	defer resp.Body.Close()
+	if err != nil {
+		fmt.Println("post ryoku error:", err)
+		return
+	}
 	ioutil.ReadAll(resp.Body)
 }
 
