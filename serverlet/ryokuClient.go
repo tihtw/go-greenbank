@@ -163,11 +163,11 @@ func connectRyoku() {
 
 func postRyoku(macAddress string, peripheralName string, body *url.Values) {
 	resp, err := http.PostForm(RyokuAddress+"/2/devices/"+macAddress+"/peripherals/"+peripheralName, *body)
-	defer resp.Body.Close()
 	if err != nil {
 		fmt.Println("post ryoku error:", err)
 		return
 	}
+	defer resp.Body.Close()
 	ioutil.ReadAll(resp.Body)
 }
 
