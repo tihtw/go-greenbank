@@ -119,8 +119,15 @@ func connectRyoku() {
 		if err != nil {
 			// Connection problem, reconnect
 			fmt.Println("connection problem:", err)
-			time.Sleep(10 * time.Second)
-			resp, _ = http.Get(RyokuAddress + "/2/devices/" + mainMacaddress + "?event-stream")
+			for {
+				time.Sleep(3 * time.Second)
+				resp, err = http.Get(RyokuAddress + "/2/devices/" + mainMacaddress + "?event-stream")
+				if err != nil {
+					fmt.Println("connection retry problem:", err)
+					continue
+				}
+				break
+			}
 			reader = bufio.NewReader(resp.Body)
 			continue
 		}
