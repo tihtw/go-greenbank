@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"time"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -10,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 )
 
 var RyokuAddress = "https://www.tih.tw:8081"
@@ -73,14 +73,14 @@ var mainMacaddress = ""
 
 var listenedBluetoothAddress map[string]func(macAddress string, lightNumber string, value bool) = map[string]func(macAddress string, lightNumber string, value bool){}
 
-func heartBeat(){
+func heartBeat() {
 	for {
-	postRyoku(mainMacaddress, "_", &url.Values{
-		"ipv4": getIPv4Address(),
-		"ipv6": {strings.Join(getIPv6Address(), ",")},
-		"device_timestamp": {time.Now().Format(time.RFC3339)},
-	})
-	
+		postRyoku(mainMacaddress, "_", &url.Values{
+			"ipv4":             getIPv4Address(),
+			"ipv6":             {strings.Join(getIPv6Address(), ",")},
+			"device_timestamp": {time.Now().Format(time.RFC3339)},
+		})
+
 		time.Sleep(10 * time.Second)
 	}
 }
@@ -93,18 +93,24 @@ func connectRyoku() {
 	fmt.Println("main mac address:", mainMacaddress)
 	postRyoku(mainMacaddress, "_", &url.Values{
 		"driver_name": {"tw.tih.bridge.maidwhitebridge.v1"},
-		"ipv4": getIPv4Address(),
-		"ipv6": {strings.Join(getIPv6Address(), ",")},
+		"ipv4":        getIPv4Address(),
+		"ipv6":        {strings.Join(getIPv6Address(), ",")},
 		"mac_address": {mainMacaddress},
 	})
 	go heartBeat()
 
-	
-
 	resp, _ := http.Get(RyokuAddress + "/2/devices/" + mainMacaddress + "?event-stream")
 	reader := bufio.NewReader(resp.Body)
 	for {
-		line, _ := reader.ReadBytes('\n')
+		line, err := reader.ReadBytes('\n')
+		if err != nil {
+			// Connection problem, reconnect
+			fmt.Println("connection problem:", err)
+			time.Sleep(10 * time.Second)
+			resp, _ = http.Get(RyokuAddress + "/2/devices/" + mainMacaddress + "?event-stream")
+			reader = bufio.NewReader(resp.Body)
+			continue
+		}
 		if len(line) < 6 {
 			continue
 		}
@@ -163,14 +169,14 @@ func postRyoku(macAddress string, peripheralName string, body *url.Values) {
 func postRyokuLight(bluetoothMacAddress string, lightName string, value bool) {
 	postRyoku(mainMacaddress, bluetoothMacAddress, &url.Values{
 		lightName + "_status": {fmt.Sprintf("%t", value)},
-		"device_timestamp": {time.Now().Format(time.RFC3339)},
+		"device_timestamp":    {time.Now().Format(time.RFC3339)},
 	})
 }
 
 func postRyokuProductType(bluetoothMacAddress string, productType int) {
 	postRyoku(mainMacaddress, bluetoothMacAddress, &url.Values{
 		"product_type": {fmt.Sprintf("%d", productType)},
-		"driver_name": {"tw.tih.x.com.gbank365.gswitch"},
+		"driver_name":  {"tw.tih.x.com.gbank365.gswitch"},
 	})
 }
 
