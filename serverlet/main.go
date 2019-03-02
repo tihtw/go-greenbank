@@ -106,7 +106,7 @@ func setLight(macAddress string, lightNumber string, value bool) {
 		// check if success after few second
 	}
 	if lightNumber == "light2" {
-		for i := 0; i < 30; i ++ {
+		for i := 0; i < 30; i++ {
 			tagerDevice.Device.SetLight(tagerDevice.DialAddress, greenbank.Light2, value)
 			time.Sleep(500 * time.Millisecond)
 			mapLock.Lock()
@@ -161,7 +161,7 @@ func greenBankHandler(a ble.Advertisement) {
 		go func() {
 			for {
 				nowStatus, _ := statusStore[a.Addr().String()]
-				if(nowStatus == nil){
+				if nowStatus == nil {
 					fmt.Println("warn: now status is null")
 					continue
 				}
@@ -171,7 +171,7 @@ func greenBankHandler(a ble.Advertisement) {
 				time.Sleep(5 * time.Minute)
 			}
 
-			}()
+		}()
 
 	} else {
 		// check dirty
@@ -194,6 +194,7 @@ func greenBankHandler(a ble.Advertisement) {
 
 	mapLock.Unlock()
 }
+
 /*
 func setLight2(address string, status bool) {
 
@@ -264,7 +265,6 @@ func test(cln ble.Client, data byte) error {
 	return nil
 }
 */
-
 
 func chkErr(err error) {
 	switch errors.Cause(err) {

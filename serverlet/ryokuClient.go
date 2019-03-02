@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -85,6 +86,21 @@ func heartBeat() {
 	}
 }
 
+func newTimeoutRequest(url string) (*http.Response, error) {
+	ctx, cancel := context.WithCancel(context.TODO())
+	_ = time.AfterFunc(30*time.Minute, func() {
+		fmt.Println("timeout, cancel")
+		cancel()
+	})
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	return http.DefaultClient.Do(req)
+
+}
+
 func connectRyoku() {
 	fmt.Println("mac address", getMacAddrs())
 	fmt.Println("ipv4 address", getIPv4Address())
@@ -98,14 +114,15 @@ func connectRyoku() {
 		"mac_address": {mainMacaddress},
 	})
 	go heartBeat()
+	url := RyokuAddress + "/2/devices/" + mainMacaddress + "?event-stream"
 
-	resp, err := http.Get(RyokuAddress + "/2/devices/" + mainMacaddress + "?event-stream")
+	resp, err := newTimeoutRequest(url)
 	if err != nil {
 		// Connection problem, reconnect
 		for {
 			fmt.Println("first connection problem:", err)
 			time.Sleep(10 * time.Second)
-			resp, err = http.Get(RyokuAddress + "/2/devices/" + mainMacaddress + "?event-stream")
+			resp, err = newTimeoutRequest(url)
 			if err != nil {
 				fmt.Println("connection retry problem:", err)
 				continue
@@ -115,13 +132,15 @@ func connectRyoku() {
 	}
 	reader := bufio.NewReader(resp.Body)
 	for {
+
 		line, err := reader.ReadBytes('\n')
+
 		if err != nil {
 			// Connection problem, reconnect
 			fmt.Println("connection problem:", err)
 			for {
 				time.Sleep(3 * time.Second)
-				resp, err = http.Get(RyokuAddress + "/2/devices/" + mainMacaddress + "?event-stream")
+				resp, err = newTimeoutRequest(url)
 				if err != nil {
 					fmt.Println("connection retry problem:", err)
 					continue
